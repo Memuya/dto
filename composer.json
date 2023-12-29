@@ -1,0 +1,20 @@
+{
+    "name": "memuya/dto",
+    "description": "A basic DTO librry for PHP.",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "friendsofphp/php-cs-fixer": "^3.42",
+        "phpstan/phpstan": "^1.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "Memuya\\Dto\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Mehmet Uyanik"
+        }
+    ]
+}

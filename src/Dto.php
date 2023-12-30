@@ -68,17 +68,30 @@ abstract class Dto
             }
 
             if (isset($data[$propertyName])) {
-                /**
-                 * Set the property directly to enforce any typehints it may have.
-                 * A TypeError exception will be thrown if the given type is invalid.
-                 *
-                 * @throws \TypeError
-                 */
-                $this->data[$propertyName] = $this->{$propertyName} = $data[$propertyName] ?? $property->getDefaultValue() ?? null;
+                $this->setProperty($property, $data[$propertyName]);
             }
 
             unset($this->{$propertyName});
         }
+    }
+
+    /**
+     * Set the value against the given property.
+     *
+     * @param RelfectionProperty $property
+     * @param mixed $value
+     */
+    private function setProperty(ReflectionProperty $property, mixed $value): void
+    {
+        $propertyName = $property->getName();
+
+        /**
+         * Set the property directly to enforce any typehints it may have.
+         * A TypeError exception will be thrown if the given type is invalid.
+         *
+         * @throws \TypeError
+         */
+        $this->data[$propertyName] = $this->{$propertyName} = $value ?? $property->getDefaultValue() ?? null;
     }
 
     /**

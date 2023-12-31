@@ -1,8 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use Memuya\Dto\Dto;
-use Memuya\Dto\Types\Required;
 use Memuya\Dto\Types\Optional;
+use Memuya\Dto\Types\Required;
 use PHPUnit\Framework\TestCase;
 use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 

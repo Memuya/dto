@@ -78,7 +78,7 @@ abstract class Dto
     /**
      * Set the value against the given property.
      *
-     * @param RelfectionProperty $property
+     * @param ReflectionProperty $property
      * @param mixed $value
      */
     private function setProperty(ReflectionProperty $property, mixed $value): void
@@ -113,17 +113,6 @@ abstract class Dto
     private function isRequired(ReflectionProperty $property): bool
     {
         return count($property->getAttributes(Required::class)) > 0;
-    }
-
-    /**
-     * Check if the given property was marked as optional.
-     *
-     * @param ReflectionProperty $property
-     * @return bool
-     */
-    private function isOptional(ReflectionProperty $property): bool
-    {
-        return count($property->getAttributes(Optional::class)) > 0;
     }
 
     /**

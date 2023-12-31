@@ -6,7 +6,6 @@ namespace Memuya\Dto;
 
 use ReflectionClass;
 use ReflectionProperty;
-use Memuya\Dto\Types\Optional;
 use Memuya\Dto\Types\Required;
 use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 

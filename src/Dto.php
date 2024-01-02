@@ -12,13 +12,6 @@ use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 abstract class Dto
 {
     /**
-     * Stores all the data for each defined property on the child classes.
-     *
-     * @var array<string, mixed>
-     */
-    private array $data = [];
-
-    /**
      * Setup.
      *
      * Note: Set as final so self::fromArray() is safe.
@@ -69,8 +62,6 @@ abstract class Dto
             if (isset($data[$propertyName])) {
                 $this->setProperty($property, $data[$propertyName]);
             }
-
-            unset($this->{$propertyName});
         }
     }
 
@@ -82,25 +73,29 @@ abstract class Dto
      */
     private function setProperty(ReflectionProperty $property, mixed $value): void
     {
-        $propertyName = $property->getName();
-
-        /**
-         * Set the property directly to enforce any typehints it may have.
-         * A TypeError exception will be thrown if the given type is invalid.
-         *
-         * @throws \TypeError
-         */
-        $this->data[$propertyName] = $this->{$propertyName} = $value ?? $property->getDefaultValue() ?? null;
+        $property->setValue($this, $value ?? $property->getDefaultValue() ?? null);
     }
 
     /**
-     * Return the underlaying data.
+     * Return the DTO data as an array.
      *
      * @return array<string, mixed>
      */
     public function toArray(): array
     {
-        return $this->data;
+        $data = [];
+
+        $properties = (new ReflectionClass($this))->getProperties(ReflectionProperty::IS_PROTECTED);
+
+        foreach ($properties as $property) {
+            if ($property->isStatic()) {
+                continue;
+            }
+
+            $data[$property->getName()] = isset($this->{$property->getName()}) ? $property->getValue($this) : null;
+        }
+
+        return $data;
     }
 
     /**
@@ -122,7 +117,6 @@ abstract class Dto
      */
     public function __get(string $property): mixed
     {
-        return $this->data[$property] ?? null;
-        // return $this->data[$property] ?? throw new Exception(sprintf("'%s' property never set.", $property));
+        return isset($this->{$property}) ? $this->{$property} : null;
     }
 }

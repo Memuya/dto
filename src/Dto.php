@@ -6,7 +6,7 @@ namespace Memuya\Dto;
 
 use ReflectionClass;
 use ReflectionProperty;
-use Memuya\Dto\Types\Required;
+use Memuya\Dto\Types\Optional;
 use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 
 abstract class Dto
@@ -25,7 +25,7 @@ abstract class Dto
         if (is_array($args[0] ?? null)) {
             $args = $args[0];
         }
-        
+
         $this->setProperties($args);
     }
 
@@ -58,7 +58,7 @@ abstract class Dto
 
             $propertyName = $property->getName();
 
-            if (!isset($data[$propertyName]) && $this->isRequired($property)) {
+            if (!isset($data[$propertyName]) && !$this->isOptional($property)) {
                 throw new RequiredPropertyNotFoundException(
                     message: sprintf("'%s' is a required property on %s", $propertyName, static::class),
                     propertyName: $propertyName
@@ -76,6 +76,7 @@ abstract class Dto
      *
      * @param ReflectionProperty $property
      * @param mixed $value
+     * @throws \TypeError
      */
     private function setProperty(ReflectionProperty $property, mixed $value): void
     {
@@ -105,14 +106,14 @@ abstract class Dto
     }
 
     /**
-     * Check if the given property was marked as required.
+     * Check if the given property was marked as optional.
      *
      * @param ReflectionProperty $property
      * @return bool
      */
-    private function isRequired(ReflectionProperty $property): bool
+    private function isOptional(ReflectionProperty $property): bool
     {
-        return count($property->getAttributes(Required::class)) > 0;
+        return count($property->getAttributes(Optional::class)) > 0;
     }
 
     /**

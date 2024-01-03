@@ -37,24 +37,22 @@ final class DtoTest extends TestCase
         $this->assertSame($age, $dto->age);
     }
 
-    // public function testCanGetUnderlayingDataArray(): void
-    // {
-    //     $name = 'test_name';
-    //     $age = 100;
+    public function testCanPassNamedArgumentsToConstructor(): void
+    {
+        $name = 'test_name';
+        $age = 100;
 
-    //     $dto = new class (['name' => $name, 'age' => $age]) extends Dto {
-    //         #[Required]
-    //         public string $name;
+        $dto = new class (name: $name, age: $age) extends Dto {
+            #[Required]
+            protected string $name;
 
-    //         #[Required]
-    //         public int $age;
-    //     };
+            #[Required]
+            protected int $age;
+        };
 
-    //     $this->assertIsArray($dto->toArray());
-    //     $this->assertArrayHasKey('name', $dto->toArray());
-    //     $this->assertArrayHasKey('age', $dto->toArray());
-    //     $this->assertCount(2, $dto->toArray());
-    // }
+        $this->assertSame($name, $dto->name);
+        $this->assertSame($age, $dto->age);
+    }
 
     public function testOptionalPropertiesAreNotRequired()
     {

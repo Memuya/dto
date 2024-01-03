@@ -16,11 +16,17 @@ abstract class Dto
      *
      * Note: Set as final so self::fromArray() is safe.
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $args
      */
-    final public function __construct(array $data)
+    final public function __construct(...$args)
     {
-        $this->setProperties($data);
+        // Allows for arguments or an array.
+        // Taken from https://github.com/spatie/data-transfer-object/blob/main/src/DataTransferObject.php#L22
+        if (is_array($args[0] ?? null)) {
+            $args = $args[0];
+        }
+        
+        $this->setProperties($args);
     }
 
     /**
@@ -37,7 +43,7 @@ abstract class Dto
     /**
      * Set the given data for each property defined on the DTO.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      * @return void
      * @throws RequiredPropertyNotFoundException
      */

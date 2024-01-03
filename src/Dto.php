@@ -124,6 +124,6 @@ abstract class Dto
      */
     public function __get(string $property): mixed
     {
-        return isset($this->{$property}) ? $this->{$property} : null;
+        return $this->{$property} ?? null;
     }
 }

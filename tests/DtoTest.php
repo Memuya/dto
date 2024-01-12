@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Memuya\Dto\Dto;
 use Memuya\Dto\Types\Optional;
-use Memuya\Dto\Types\Required;
 use PHPUnit\Framework\TestCase;
 use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 
@@ -15,7 +14,6 @@ final class DtoTest extends TestCase
         $this->expectException(RequiredPropertyNotFoundException::class);
 
         new class ([]) extends Dto {
-            #[Required]
             protected string $name;
         };
     }
@@ -26,10 +24,8 @@ final class DtoTest extends TestCase
         $age = 100;
 
         $dto = new class (['name' => $name, 'age' => $age]) extends Dto {
-            #[Required]
             protected string $name;
 
-            #[Required]
             protected int $age;
         };
 
@@ -37,63 +33,66 @@ final class DtoTest extends TestCase
         $this->assertSame($age, $dto->age);
     }
 
-    public function testCanGetUnderlayingDataArray(): void
+    public function testCanPassNamedArgumentsToConstructor(): void
     {
         $name = 'test_name';
         $age = 100;
 
-        $dto = new class (['name' => $name, 'age' => $age]) extends Dto {
-            #[Required]
+        $dto = new class (name: $name, age: $age) extends Dto {
             protected string $name;
 
-            #[Required]
             protected int $age;
         };
 
-        $this->assertIsArray($dto->toArray());
-        $this->assertArrayHasKey('name', $dto->toArray());
-        $this->assertArrayHasKey('age', $dto->toArray());
-        $this->assertCount(2, $dto->toArray());
+        $this->assertSame($name, $dto->name);
+        $this->assertSame($age, $dto->age);
     }
 
     public function testOptionalPropertiesAreNotRequired()
     {
         $name = 'test_name';
-        $data = ['name' => $name];
+        $data = ['name' => $name, 'testDto' => ['key' => new \Memuya\Test\TestData\TestDto(name: 'adasd')]];
 
         $dto = new class ($data) extends Dto {
-            #[Required]
             protected string $name;
 
             #[Optional]
             protected int $age;
+
+            protected array $testDto;
         };
 
         $this->assertNull($dto->age);
-        $this->assertArrayHasKey('name', $dto->toArray());
-        $this->assertArrayNotHasKey('age', $dto->toArray());
-        $this->assertCount(1, $dto->toArray());
+        $this->assertSame($name, $dto->name);
     }
 
-    public function testPropertiesNotSetAsRequiredOrOptionalAreTreatedAsOptional()
+    public function testRecursivelyTransformsDtosIntoArray()
     {
-        $dto = new class ([]) extends Dto {
-            protected string $name;
-            protected int $age;
+        $name = 'test_name';
+        $data = ['testDto' => ['key' => new \Memuya\Test\TestData\TestDto(name: $name)]];
+
+        $dto = new class ($data) extends Dto {
+            protected array $testDto;
         };
 
-        $this->assertNull($dto->name);
-        $this->assertNull($dto->age);
-        $this->assertArrayNotHasKey('name', $dto->toArray());
-        $this->assertArrayNotHasKey('age', $dto->toArray());
-        $this->assertCount(0, $dto->toArray());
+        $array = $dto->toArray();
+
+        // Should be arrays all the way down.
+        $this->assertIsArray($array);
+        $this->assertIsArray($array['testDto']);
+        $this->assertArrayHasKey('key', $array['testDto']);
+        $this->assertIsArray($array['testDto']['key']);
+        $this->assertArrayHasKey('name', $array['testDto']['key']);
+        $this->assertSame($name, $array['testDto']['key']['name']);
     }
 
     public function testCanCreateNewInstance()
     {
-        $dto = new class ([]) extends Dto {};
-        $newInstance = $dto::fromArray([]);
+        $name = 'test_name';
+        $data = ['name' => $name];
+        $newInstance = \Memuya\Test\TestData\TestDto::fromArray($data);
 
         $this->assertInstanceOf(Dto::class, $newInstance);
+        $this->assertSame($name, $newInstance->name);
     }
 }

@@ -6,28 +6,27 @@ namespace Memuya\Dto;
 
 use ReflectionClass;
 use ReflectionProperty;
-use Memuya\Dto\Types\Required;
+use Memuya\Dto\Types\Optional;
 use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 
 abstract class Dto
 {
     /**
-     * Stores all the data for each defined property on the child classes.
-     *
-     * @var array<string, mixed>
-     */
-    private array $data = [];
-
-    /**
      * Setup.
      *
      * Note: Set as final so self::fromArray() is safe.
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $args
      */
-    final public function __construct(array $data)
+    final public function __construct(...$args)
     {
-        $this->setProperties($data);
+        // Allows for arguments or an array.
+        // Taken from https://github.com/spatie/data-transfer-object/blob/main/src/DataTransferObject.php#L22
+        if (is_array($args[0] ?? null)) {
+            $args = $args[0];
+        }
+
+        $this->setProperties($args);
     }
 
     /**
@@ -44,7 +43,7 @@ abstract class Dto
     /**
      * Set the given data for each property defined on the DTO.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      * @return void
      * @throws RequiredPropertyNotFoundException
      */
@@ -59,7 +58,7 @@ abstract class Dto
 
             $propertyName = $property->getName();
 
-            if (!isset($data[$propertyName]) && $this->isRequired($property)) {
+            if (!isset($data[$propertyName]) && !$this->isOptional($property)) {
                 throw new RequiredPropertyNotFoundException(
                     message: sprintf("'%s' is a required property on %s", $propertyName, static::class),
                     propertyName: $propertyName
@@ -69,8 +68,6 @@ abstract class Dto
             if (isset($data[$propertyName])) {
                 $this->setProperty($property, $data[$propertyName]);
             }
-
-            unset($this->{$propertyName});
         }
     }
 
@@ -79,39 +76,69 @@ abstract class Dto
      *
      * @param ReflectionProperty $property
      * @param mixed $value
+     * @throws \TypeError
      */
     private function setProperty(ReflectionProperty $property, mixed $value): void
     {
-        $propertyName = $property->getName();
-
-        /**
-         * Set the property directly to enforce any typehints it may have.
-         * A TypeError exception will be thrown if the given type is invalid.
-         *
-         * @throws \TypeError
-         */
-        $this->data[$propertyName] = $this->{$propertyName} = $value ?? $property->getDefaultValue() ?? null;
+        $property->setValue($this, $value ?? $property->getDefaultValue() ?? null);
     }
 
     /**
-     * Return the underlaying data.
+     * Return the DTO data as an array.
      *
      * @return array<string, mixed>
      */
     public function toArray(): array
     {
-        return $this->data;
+        $data = [];
+
+        $properties = (new ReflectionClass($this))->getProperties(ReflectionProperty::IS_PROTECTED);
+
+        foreach ($properties as $property) {
+            if ($property->isStatic()) {
+                continue;
+            }
+
+            $data[$property->getName()] = isset($this->{$property->getName()}) ? $property->getValue($this) : null;
+        }
+
+        return $this->transform($data);
     }
 
     /**
-     * Check if the given property was marked as required.
+     * Recursively transform any DTOs within an array into an array.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function transform(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if ($value instanceof Dto) {
+                $data[$key] = $value->toArray();
+
+                continue;
+            }
+
+            if (is_array($value)) {
+                $data[$key] = $this->transform($value);
+
+                continue;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Check if the given property was marked as optional.
      *
      * @param ReflectionProperty $property
      * @return bool
      */
-    private function isRequired(ReflectionProperty $property): bool
+    private function isOptional(ReflectionProperty $property): bool
     {
-        return count($property->getAttributes(Required::class)) > 0;
+        return count($property->getAttributes(Optional::class)) > 0;
     }
 
     /**
@@ -122,7 +149,6 @@ abstract class Dto
      */
     public function __get(string $property): mixed
     {
-        return $this->data[$property] ?? null;
-        // return $this->data[$property] ?? throw new Exception(sprintf("'%s' property never set.", $property));
+        return $this->{$property} ?? null;
     }
 }

@@ -9,7 +9,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Memuya\\Dto\\": "src/"
+            "Memuya\\Dto\\": "src/",
+            "Memuya\\Test\\": "tests/"
         }
     },
     "authors": [

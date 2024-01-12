@@ -121,8 +121,8 @@ abstract class Dto
             }
 
             if (is_array($value)) {
-                $data[$key] = $this->parseArray($value);
-                
+                $data[$key] = $this->transform($value);
+
                 continue;
             }
         }

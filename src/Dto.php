@@ -102,6 +102,31 @@ abstract class Dto
             $data[$property->getName()] = isset($this->{$property->getName()}) ? $property->getValue($this) : null;
         }
 
+        return $this->transform($data);
+    }
+
+    /**
+     * Recursively transform any DTOs within an array into an array.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function transform(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if ($value instanceof Dto) {
+                $data[$key] = $value->toArray();
+
+                continue;
+            }
+
+            if (is_array($value)) {
+                $data[$key] = $this->parseArray($value);
+                
+                continue;
+            }
+        }
+
         return $data;
     }
 

@@ -68,6 +68,8 @@ class CreateUserDto extends Dto
     protected string $password;
 }
 
+$createUserDto = new CreateUserDto(['name' => 'Bob']);
+
 echo $createUserDto->name; // Bob
 echo $createUserDto->password; // null
 ```
@@ -88,5 +90,29 @@ class CreateUserDto extends Dto
 
     #[Optional]
     protected string $password;
+}
+```
+
+## Labels
+If you would like to override the label that is returned in the friendly exception message when `RequiredPropertyNotFoundException` is thrown, you can add the `Memuya\Dto\Modifiers\Label` attribute to the property.
+
+```php
+namespace App\Your\Namespace;
+
+use Memuya\Dto\Dto;
+use Memuya\Dto\Modifiers\Label;
+use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
+
+class CreateUserDto extends Dto
+{
+    #[Label('Date of birth')]
+    protected string $dob;
+}
+
+
+try {
+    $createUserDto = new CreateUserDto([]);
+} catch (RequiredPropertyNotFoundException $ex) {
+    echo $ex->getFriendlyMessage(); // // Output -> 'Date of birth' is required.
 }
 ```

@@ -7,6 +7,7 @@ namespace Memuya\Dto;
 use ReflectionClass;
 use ReflectionProperty;
 use Memuya\Dto\Types\Optional;
+use Memuya\Dto\Modifiers\Label;
 use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 
 abstract class Dto
@@ -61,7 +62,7 @@ abstract class Dto
             if (!isset($data[$propertyName]) && !$this->isOptional($property)) {
                 throw new RequiredPropertyNotFoundException(
                     message: sprintf("'%s' is a required property on %s", $propertyName, static::class),
-                    propertyName: $propertyName
+                    propertyName: $this->getPropertyLabel($property)
                 );
             }
 
@@ -69,6 +70,23 @@ abstract class Dto
                 $this->setProperty($property, $data[$propertyName]);
             }
         }
+    }
+
+    /**
+     * Return the configured label for a property.
+     *
+     * @param ReflectionProperty $property
+     * @return string
+     */
+    private function getPropertyLabel(ReflectionProperty $property): string
+    {
+        if (count($property->getAttributes(Label::class)) === 0) {
+            return $property->getName();
+        }
+
+        $labelInstance = $property->getAttributes(Label::class)[0]->newInstance();
+
+        return $labelInstance->getLabel();
     }
 
     /**

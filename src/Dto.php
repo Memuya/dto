@@ -94,6 +94,7 @@ abstract class Dto
      *
      * @param ReflectionProperty $property
      * @param mixed $value
+     * @return void
      * @throws \TypeError
      */
     private function setProperty(ReflectionProperty $property, mixed $value): void

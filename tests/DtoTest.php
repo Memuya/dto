@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Memuya\Dto\Dto;
 use Memuya\Dto\Types\Optional;
+use Memuya\Dto\Modifiers\Label;
 use PHPUnit\Framework\TestCase;
 use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 
@@ -94,5 +95,18 @@ final class DtoTest extends TestCase
 
         $this->assertInstanceOf(Dto::class, $newInstance);
         $this->assertSame($name, $newInstance->name);
+    }
+
+    public function testPropertyLabelIsUsedInExceptionWhenRequiredPropertyIsAbsent()
+    {
+        try {
+            // This will always throw RequiredPropertyNotFoundException since we're not passing in a name.
+            new class ([]) extends Dto {
+                #[Label('Some label')]
+                protected string $name;
+            };
+        } catch (RequiredPropertyNotFoundException $ex) {
+            $this->assertStringContainsString('Some label', $ex->getFriendlyMessage());
+        }
     }
 }

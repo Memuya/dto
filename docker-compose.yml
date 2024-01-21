@@ -7,3 +7,4 @@ services:
     container_name: dto
     volumes:
       - .:/var/www/html
+    restart: unless-stopped

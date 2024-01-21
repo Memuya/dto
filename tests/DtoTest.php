@@ -109,4 +109,17 @@ final class DtoTest extends TestCase
             $this->assertStringContainsString('Some label', $ex->getFriendlyMessage());
         }
     }
+
+    public function testSetPropertiesAreTracked()
+    {
+        $dto = new class (['name' => 'test_name']) extends Dto {
+            protected string $name;
+
+            #[Optional]
+            protected int $age;
+        };
+
+        $this->assertTrue($dto->has('name'));
+        $this->assertFalse($dto->has('age'));
+    }
 }

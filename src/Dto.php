@@ -13,6 +13,13 @@ use Memuya\Dto\Exceptions\RequiredPropertyNotFoundException;
 abstract class Dto
 {
     /**
+     * The properties that have been set on the DTO.
+     *
+     * @var array<string>
+     */
+    private array $properties;
+
+    /**
      * Setup.
      *
      * Note: Set as final so self::fromArray() is safe.
@@ -99,7 +106,20 @@ abstract class Dto
      */
     private function setProperty(ReflectionProperty $property, mixed $value): void
     {
+        $this->properties[] = $property->getName();
+
         $property->setValue($this, $value ?? $property->getDefaultValue() ?? null);
+    }
+
+    /**
+     * Check if a property has been set on the DTO.
+     *
+     * @param string $property
+     * @return bool
+     */
+    public function has(string $property): bool
+    {
+        return in_array($property, $this->properties, true);
     }
 
     /**

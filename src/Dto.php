@@ -59,14 +59,14 @@ abstract class Dto
 
             $propertyName = $property->getName();
 
-            if (!isset($data[$propertyName]) && !$this->isOptional($property)) {
+            if (!array_key_exists($propertyName, $data) && !$this->isOptional($property)) {
                 throw new RequiredPropertyNotFoundException(
                     message: sprintf("'%s' is a required property on %s", $propertyName, static::class),
                     propertyName: $this->getPropertyLabel($property)
                 );
             }
 
-            if (isset($data[$propertyName])) {
+            if (array_key_exists($propertyName, $data)) {
                 $this->setProperty($property, $data[$propertyName]);
             }
         }

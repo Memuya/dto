@@ -59,7 +59,7 @@ abstract class Dto
 
             $propertyName = $property->getName();
 
-            if (!array_key_exists($propertyName, $data) && !$this->isOptional($property)) {
+            if ($this->isRequiredPropertyMissing($property, $data)) {
                 throw new RequiredPropertyNotFoundException(
                     message: sprintf("'%s' is a required property on %s", $propertyName, static::class),
                     propertyName: $this->getPropertyLabel($property)
@@ -70,6 +70,18 @@ abstract class Dto
                 $this->setProperty($property, $data[$propertyName]);
             }
         }
+    }
+
+    /**
+     * Check if the given property exists in the data array as a key.
+     *
+     * @param ReflectionProperty $property
+     * @param array<int|string, mixed> $data
+     * @return bool
+     */
+    private function isRequiredPropertyMissing(ReflectionProperty $property, array $data): bool
+    {
+        return !array_key_exists($property->getName(), $data) && !$this->isOptional($property);
     }
 
     /**
